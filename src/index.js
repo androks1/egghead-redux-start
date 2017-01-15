@@ -1,46 +1,103 @@
 import React from 'react';
-import ReactDom from 'react-dom';
-// import { createStore } from 'redux';
-import createStore from './refs/createStore'
+import ReactDOM from 'react-dom';
+import { createStore, combineReducers } from 'redux';
 
-const counter = (state = 0, action) => {
-  switch(action.type) {
-    case 'INCREMENT':
-      return state + 1;
-    case 'DECREMENT':
-      return state - 1;
+const todo = (state, action) => {
+  switch (action.type) {
+    case 'ADD_TODO':
+      return {
+        id: action.id,
+        text: action.text,
+        completed: false
+      };
+    case 'TOGGLE_TODO':
+      if (state.id !== action.id) {
+        return state;
+      }
+
+      return {
+        ...state,
+        completed: !state.completed
+      };
     default:
       return state;
   }
 }
 
-const store = createStore(counter);
-console.log(store.getState());
+const todos = (state = [], action) => {
+  switch (action.type) {
+    case 'ADD_TODO':
+      return [
+        ...state,
+        todo(undefined, action)
+      ];
+    case 'TOGGLE_TODO':
+      return state.map(todoItem => todo(todoItem, action));
+    default:
+      return state;
+  }
+};
 
-const Counter = ({ value, onIncrement, onDecrement }) => (
-  <div>
-    <h1>{ value }</h1>
-    <button onClick={ onIncrement }>+</button>
-    <button onClick={ onDecrement }>-</button>
-  </div>
-);
+const visibilityFilter = (
+    state = 'SHOW_ALL',
+    action
+) => {
+    switch (action.type) {
+      case 'SET_VISIBILITY_FILTER':
+        return action.filter;
+      default:
+        return state;
+    }
+};
 
-const render = () => ReactDom.render(
-  <Counter 
-    value={store.getState()}
-    onIncrement={() => 
-      store.dispatch({
-        type: 'INCREMENT'
-      })
-    }
-    onDecrement={() => 
-      store.dispatch({
-        type: 'DECREMENT'
-      })
-    }
-  />,
-  document.getElementById('App')
-);
+const todoApp = combineReducers({
+  todos,
+  visibilityFilter
+});
+
+const store = createStore(todoApp);
+
+const { Component } = React;
+
+let nextTodoId = 0;
+class TodoApp extends Component {
+  render() {
+    return (
+      <div>
+        <input ref={node => {
+          this.input = node;
+        }} />
+        <button onClick={() => {
+            store.dispatch({
+              type: 'ADD_TODO',
+              text: this.input.value,
+              id: nextTodoId++
+            });
+          }}>
+          Add Todo
+        </button>
+        <ul>
+          {this.props.todos.map(todo =>
+            <li key={todo.id}>
+              {todo.text}
+            </li>
+          )}
+        </ul>
+      </div>
+    )
+  };
+}
+
+const render = () => {
+  ReactDOM.render(
+    // Render the TodoApp Component to the <div> with id 'root'
+    <TodoApp
+      todos={store.getState().todos}
+    />,
+    document.getElementById('App')
+
+  )
+};
 
 store.subscribe(render);
 render();
