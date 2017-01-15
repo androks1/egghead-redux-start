@@ -1,30 +1,37 @@
 import expect from 'expect';
 import deepFreeze from 'deep-freeze';
 
+const todo = (state, action) => {
+  switch (action.type) {
+    case 'ADD_TODO':
+      return {
+        id: action.id,
+        text: action.text,
+        completed: false
+      };
+    case 'TOGGLE_TODO':
+      if (state.id !== action.id) {
+        return state;
+      }
+
+      return {
+        ...state,
+        completed: !state.completed
+      };
+    default:
+      return state;
+  }
+}
+
 const todos = (state = [], action) => {
   switch (action.type) {
     case 'ADD_TODO':
       return [
         ...state,
-        {
-          id: action.id,
-          text: action.text,
-          completed: false
-        }
+        todo(undefined, action)
       ];
     case 'TOGGLE_TODO':
-      return state.map(todo => {
-        if (todo.id !== action.id) {
-          return todo;
-        } else {
-// for the todo that matches the action id return all other information the same
-// but change the completed property to the opposite of what it was previously
-          return {
-            ...todo,
-            completed: !todo.completed
-          };
-        }
-      });
+      return state.map(todoItem => todo(todoItem, action));
     default:
       return state;
   }
