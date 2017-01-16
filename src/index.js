@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { createStore, combineReducers } from 'redux';
-const { Component } = React;
 import { connect, Provider } from 'react-redux';
 
 const todo = (state, action) => {
@@ -220,48 +219,27 @@ const Link = ({
   );
 };
 
-class FilterLink extends Component {
-  componentDidMount() {
-    const { store } = this.context;
-    this.unsubscribe = store.subscribe(() =>
-      this.forceUpdate()
-    );
-  }
-
-  // Since the subscription happens in `componentDidMount`,
-  // it's important to unsubscribe in `componentWillUnmount`.
-  componentWillUnmount() {
-    this.unsubscribe(); // return value of `store.subscribe()`
-  }
-
-  render () {
-    const props = this.props;
-    const { store } = this.context;
-    // this just reads the store, is not listening
-    // for change messages from the store updating
-    const state = store.getState();
-
-    return (
-      <Link
-        active={
-          props.filter ===
-          state.visibilityFilter
-        }
-        onClick={() =>
-          store.dispatch({
-            type: 'SET_VISIBILITY_FILTER',
-            filter: props.filter
-          })
-        }
-      >
-        {props.children}
-      </Link>
-    );
-  }
+const mapStateToLinkProps = (state, ownProps) => {
+  return {
+    active: ownProps.filter === state.visibilityFilter
+  };
 }
-FilterLink.contextTypes = {
-  store: React.PropTypes.object
-}
+
+const mapDispatchToLinkProps = (dispatch, ownProps) => {
+  return {
+    onClick: () => {
+      dispatch({
+        type: 'SET_VISIBILITY_FILTER',
+        filter: ownProps.filter
+      })
+    }
+  };
+};
+
+const FilterLink = connect(
+  mapStateToLinkProps,
+  mapDispatchToLinkProps
+)(Link);
 
 
 ReactDOM.render(
