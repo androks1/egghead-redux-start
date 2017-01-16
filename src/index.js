@@ -56,8 +56,6 @@ const todoApp = combineReducers({
   visibilityFilter
 });
 
-const store = createStore(todoApp);
-
 
 const getVisibleTodos = (
   todos,
@@ -115,6 +113,7 @@ const TodoList =({
 
 class VisibleTodoList extends Component {
   componentDidMount() {
+    const { store } = this.props;
     this.unsubscribe = store.subscribe(() =>
       this.forceUpdate()
     );
@@ -125,6 +124,7 @@ class VisibleTodoList extends Component {
   }
 
   render() {
+    const { store } = this.props;
     const state = store.getState();
 
     return (
@@ -147,7 +147,7 @@ class VisibleTodoList extends Component {
 }
 
 let nextTodoId = 0;
-const AddTodo = () => {
+const AddTodo = ({store}) => {
   let input;
 
   return (
@@ -170,33 +170,36 @@ const AddTodo = () => {
 };
 
 
-const TodoApp = () => (
+const TodoApp = ({store}) => (
   <div>
-    <AddTodo />
-    <VisibleTodoList />
-    <Footer />
+    <AddTodo store={store}/>
+    <VisibleTodoList store={store}/>
+    <Footer store={store}/>
   </div>
 );
 
 
-const Footer = () => (
+const Footer = ({store}) => (
   <p>
     Show:
     {' '}
     <FilterLink
       filter='SHOW_ALL'
+      store={store}
     >
       All
     </FilterLink>
     {', '}
     <FilterLink
       filter='SHOW_ACTIVE'
+      store={store}
     >
       Active
     </FilterLink>
     {', '}
     <FilterLink
       filter='SHOW_COMPLETED'
+      store={store}
     >
       Completed
     </FilterLink>
@@ -226,6 +229,7 @@ const Link = ({
 
 class FilterLink extends Component {
   componentDidMount() {
+    const { store } = this.props;
     this.unsubscribe = store.subscribe(() =>
       this.forceUpdate()
     );
@@ -239,6 +243,7 @@ class FilterLink extends Component {
 
   render () {
     const props = this.props;
+    const { store } = props
     // this just reads the store, is not listening
     // for change messages from the store updating
     const state = store.getState();
@@ -264,6 +269,6 @@ class FilterLink extends Component {
 
 ReactDOM.render(
   // Render the TodoApp Component to the <div> with id 'root'
-  <TodoApp />,
+  <TodoApp store={createStore(todoApp)}/>,
   document.getElementById('App')
 );
