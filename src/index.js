@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { createStore, combineReducers } from 'redux';
 const { Component } = React;
+import { Provider } from 'react-redux';
 
 const todo = (state, action) => {
   switch (action.type) {
@@ -269,21 +270,6 @@ class FilterLink extends Component {
   }
 }
 FilterLink.contextTypes = {
-  store: React.PropTypes.object
-}
-
-class Provider extends Component {
-  getChildContext() {
-    return {
-      store: this.props.store // This corresponds to the `store` passed in as a prop
-    };
-  }
-
-  render() {
-    return this.props.children;
-  }
-}
-Provider.childContextTypes = {
   store: React.PropTypes.object
 }
 
