@@ -166,74 +166,96 @@ class TodoApp extends Component {
               id
             })
           }/>
-        <Footer
-          visibilityFilter={visibilityFilter}
-          onFilterClick={filter =>
-            store.dispatch({
-              type: 'SET_VISIBILITY_FILTER',
-              filter
-            })
-          }
-        />
+        <Footer />
       </div>
     )
   };
 }
 
-const Footer = ({
-  visibilityFilter,
-  onFilterClick
-}) => (
+const Footer = () => (
   <p>
     Show:
     {' '}
     <FilterLink
       filter='SHOW_ALL'
-      currentFilter={visibilityFilter}
-      onClick={onFilterClick}
     >
       All
     </FilterLink>
-    {' '}
+    {', '}
     <FilterLink
       filter='SHOW_ACTIVE'
-      currentFilter={visibilityFilter}
-      onClick={onFilterClick}
     >
       Active
     </FilterLink>
-    {' '}
+    {', '}
     <FilterLink
       filter='SHOW_COMPLETED'
-      currentFilter={visibilityFilter}
-      onClick={onFilterClick}
     >
       Completed
     </FilterLink>
   </p>
-);
+)
 
-const FilterLink = ({
-  filter,
-  currentFilter,
+const Link = ({
+  active,
   children,
   onClick
 }) => {
-  if (filter === currentFilter) {
+  if (active) {
     return <span>{children}</span>
   }
 
   return (
     <a href='#'
-       onClick={e => {
-         e.preventDefault();
-         onClick(filter);
-       }}
+      onClick={e => {
+        e.preventDefault();
+        onClick();
+      }}
     >
       {children}
     </a>
-  )
+  );
+};
+
+class FilterLink extends Component {
+  componentDidMount() {
+    this.unsubscribe = store.subscribe(() =>
+      this.forceUpdate()
+    );
+  }
+
+  // Since the subscription happens in `componentDidMount`,
+  // it's important to unsubscribe in `componentWillUnmount`.
+  componentWillUnmount() {
+    this.unsubscribe(); // return value of `store.subscribe()`
+  }
+
+  render () {
+    const props = this.props;
+    // this just reads the store, is not listening
+    // for change messages from the store updating
+    const state = store.getState();
+
+    return (
+      <Link
+        active={
+          props.filter ===
+          state.visibilityFilter
+        }
+        onClick={() =>
+          store.dispatch({
+            type: 'SET_VISIBILITY_FILTER',
+            filter: props.filter
+          })
+        }
+      >
+        {props.children}
+      </Link>
+    );
+  }
 }
+
+
 
 const render = () => {
   ReactDOM.render(
